@@ -18,6 +18,7 @@ return [
     // 时间字段配置 配置格式：create_time,update_time
     'datetime_field'  => '',
 
+    
     // 数据库连接配置信息
     'connections'     => [
         'mysql' => [
