@@ -10,6 +10,23 @@
 // +----------------------------------------------------------------------
 use think\facade\Route;
 
+// ============================
+// 认证相关路由
+// ============================
+Route::group('api/auth', function () {
+    // 用户登录（无需Token验证）
+    Route::post('login', 'AuthController/login');
+
+    // 用户登出（需要Token验证）
+    Route::post('logout', 'AuthController/logout')->middleware(['jwt']);
+
+    // 获取用户信息（需要Token验证）
+    Route::get('userinfo', 'AuthController/getUserInfo')->middleware(['jwt']);
+});
+
+// ============================
+// 测试路由
+// ============================
 Route::get('think', function () {
     return 'hello,ThinkPHP8!';
 });
