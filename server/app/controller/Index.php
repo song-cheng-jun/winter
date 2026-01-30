@@ -15,4 +15,47 @@ class Index extends BaseController
     {
         return 'hello,' . $name;
     }
+
+    /**
+     * 数据库连接测试
+     */
+    public function testDb()
+    {
+        try {
+            // 获取数据库连接配置
+            $config = config('database.connections.mysql');
+
+            $result = [
+                'success' => true,
+                'message' => '数据库连接成功',
+                'config' => [
+                    'host' => $config['hostname'],
+                    'port' => $config['hostport'],
+                    'database' => $config['database'],
+                    'charset' => $config['charset'],
+                ]
+            ];
+
+            // 测试查询
+            $db = \think\facade\Db::connect();
+            $tables = $db->query('SHOW TABLES');
+
+            $result['tables_count'] = count($tables);
+            $result['tables'] = array_column($tables, 'tables_in_' . $config['database']);
+
+            // 测试简单查询
+            $version = $db->query('SELECT VERSION() as version');
+            $result['mysql_version'] = $version[0]['version'] ?? 'unknown';
+
+            return json($result);
+
+        } catch (\Exception $e) {
+            return json([
+                'success' => false,
+                'message' => '数据库连接失败',
+                'error' => $e->getMessage(),
+                'error_code' => $e->getCode()
+            ]);
+        }
+    }
 }

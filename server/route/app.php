@@ -15,3 +15,7 @@ Route::get('think', function () {
 });
 
 Route::get('hello/:name', 'index/hello');
+
+// 数据库测试路由
+Route::get('testdb', 'index/testDb');
+Route::get('index/testdb', 'index/testDb');
