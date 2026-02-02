@@ -62,8 +62,8 @@ const loading = ref(false)
 
 // 表单数据
 const loginForm = reactive<LoginForm>({
-  username: 'admin',
-  password: 'password',
+  username: '',
+  password: '',
 })
 
 // 表单错误信息

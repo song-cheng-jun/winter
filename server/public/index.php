@@ -15,6 +15,22 @@ use think\App;
 
 require __DIR__ . '/../vendor/autoload.php';
 
+// CORS 跨域处理 - 在应用执行之前设置响应头
+if (isset($_SERVER['HTTP_ORIGIN'])) {
+    $origin = $_SERVER['HTTP_ORIGIN'];
+    header("Access-Control-Allow-Origin: $origin");
+    header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS, PATCH');
+    header('Access-Control-Allow-Headers: Authorization, Content-Type, X-Requested-With, Accept, Origin');
+    header('Access-Control-Allow-Credentials: true');
+    header('Access-Control-Max-Age: 86400');
+
+    // 处理 OPTIONS 预检请求
+    if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+        http_response_code(204);
+        exit;
+    }
+}
+
 // 执行HTTP应用并响应
 $http = (new App())->http;
 

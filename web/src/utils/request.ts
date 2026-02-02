@@ -18,7 +18,7 @@ import type { ApiResponse, RequestConfig } from '@/types'
  */
 const config = {
   // API基础URL，从环境变量读取，默认为本地开发地址
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://lib.com',
   // 请求超时时间（毫秒）
   timeout: 15000,
 }
