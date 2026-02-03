@@ -5,6 +5,7 @@ namespace app\controller;
 
 use app\BaseController;
 use app\model\User;
+use app\model\Menu;
 use Firebase\JWT\JWT;
 use think\facade\Request;
 
@@ -277,5 +278,187 @@ class AuthController extends BaseController
 
         // 生成Token
         return JWT::encode($payload, $secret, 'HS256');
+    }
+
+    /**
+     * 获取当前用户的菜单树
+     *
+     * @return \think\response\Json
+     *
+     * 请求方式: GET
+     * 请求路径: /api/auth/menus
+     * 请求头:
+     *   - Authorization: Bearer {token}
+     *
+     * 返回数据:
+     *   success: true/false
+     *   message: string
+     *   data: array 菜单树形结构
+     */
+    public function getUserMenus()
+    {
+        try {
+            $userId = Request::instance()->userId ?? null;
+
+            if (!$userId) {
+                return json([
+                    'success' => false,
+                    'message' => '用户未登录',
+                    'error' => 'USER_NOT_LOGGED_IN',
+                    'error_code' => 401
+                ], 401);
+            }
+
+            // 获取用户的菜单ID列表
+            $menuIds = User::getMenuIds($userId);
+
+            if (empty($menuIds)) {
+                return json([
+                    'success' => true,
+                    'message' => '获取用户菜单成功',
+                    'data' => []
+                ]);
+            }
+
+            // 获取菜单树
+            $menus = Menu::getTree(0, $menuIds);
+
+            return json([
+                'success' => true,
+                'message' => '获取用户菜单成功',
+                'data' => $menus
+            ]);
+
+        } catch (\Exception $e) {
+            return json([
+                'success' => false,
+                'message' => '获取用户菜单失败',
+                'error' => $e->getMessage(),
+                'error_code' => 500
+            ], 500);
+        }
+    }
+
+    /**
+     * 获取当前用户的权限列表
+     *
+     * @return \think\response\Json
+     *
+     * 请求方式: GET
+     * 请求路径: /api/auth/permissions
+     * 请求头:
+     *   - Authorization: Bearer {token}
+     *
+     * 返回数据:
+     *   success: true/false
+     *   message: string
+     *   data: array 权限代码数组
+     */
+    public function getUserPermissions()
+    {
+        try {
+            $userId = Request::instance()->userId ?? null;
+
+            if (!$userId) {
+                return json([
+                    'success' => false,
+                    'message' => '用户未登录',
+                    'error' => 'USER_NOT_LOGGED_IN',
+                    'error_code' => 401
+                ], 401);
+            }
+
+            // 获取用户的权限代码列表
+            $permissions = User::getPermissionCodes($userId);
+
+            return json([
+                'success' => true,
+                'message' => '获取用户权限成功',
+                'data' => $permissions
+            ]);
+
+        } catch (\Exception $e) {
+            return json([
+                'success' => false,
+                'message' => '获取用户权限失败',
+                'error' => $e->getMessage(),
+                'error_code' => 500
+            ], 500);
+        }
+    }
+
+    /**
+     * 获取当前用户完整信息（包含角色和权限）
+     *
+     * @return \think\response\Json
+     *
+     * 请求方式: GET
+     * 请求路径: /api/auth/info
+     * 请求头:
+     *   - Authorization: Bearer {token}
+     *
+     * 返回数据:
+     *   success: true/false
+     *   message: string
+     *   data: object 用户信息（包含角色、菜单、权限）
+     */
+    public function getUserCompleteInfo()
+    {
+        try {
+            $userId = Request::instance()->userId ?? null;
+
+            if (!$userId) {
+                return json([
+                    'success' => false,
+                    'message' => '用户未登录',
+                    'error' => 'USER_NOT_LOGGED_IN',
+                    'error_code' => 401
+                ], 401);
+            }
+
+            // 获取用户信息（包含角色）
+            $userInfo = User::getUserInfo($userId, true);
+
+            if (!$userInfo) {
+                return json([
+                    'success' => false,
+                    'message' => '用户不存在',
+                    'error' => 'USER_NOT_FOUND',
+                    'error_code' => 404
+                ], 404);
+            }
+
+            // 获取用户的菜单
+            $menuIds = User::getMenuIds($userId);
+            $menus = !empty($menuIds) ? Menu::getTree(0, $menuIds) : [];
+
+            // 获取用户的权限代码
+            $permissions = User::getPermissionCodes($userId);
+
+            // 组装完整信息
+            $data = [
+                'user' => $userInfo,
+                'roles' => $userInfo['roles'] ?? [],
+                'menus' => $menus,
+                'permissions' => $permissions
+            ];
+
+            // 移除 user 中的 roles 字段（因为已经在顶层返回了）
+            unset($data['user']['roles']);
+
+            return json([
+                'success' => true,
+                'message' => '获取用户信息成功',
+                'data' => $data
+            ]);
+
+        } catch (\Exception $e) {
+            return json([
+                'success' => false,
+                'message' => '获取用户信息失败',
+                'error' => $e->getMessage(),
+                'error_code' => 500
+            ], 500);
+        }
     }
 }

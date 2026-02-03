@@ -36,6 +36,14 @@ class User extends Model
     protected $hidden = ['password'];
 
     /**
+     * 关联角色（多对多）
+     */
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class, 'user_roles', 'user_id', 'role_id');
+    }
+
+    /**
      * 根据用户名查找用户
      *
      * @param string $username 用户名
@@ -99,14 +107,85 @@ class User extends Model
      * 获取用户信息（不包含敏感字段）
      *
      * @param int $userId 用户ID
+     * @param bool $withRoles 是否包含角色信息
      * @return array|null 用户信息数组或null
      */
-    public static function getUserInfo(int $userId): ?array
+    public static function getUserInfo(int $userId, bool $withRoles = false): ?array
     {
-        $user = self::where('id', $userId)
-            ->field('id,username,nickname,avatar,email,phone,role,status,last_login_time,last_login_ip,created_at,updated_at')
-            ->find();
+        $query = self::where('id', $userId)
+            ->field('id,username,nickname,avatar,email,phone,status,last_login_time,last_login_ip,created_at,updated_at');
+
+        if ($withRoles) {
+            $query->with(['roles' => function($query) {
+                $query->field('id,name,code,description');
+            }]);
+        }
+
+        $user = $query->find();
 
         return $user ? $user->toArray() : null;
+    }
+
+    /**
+     * 获取用户的角色ID数组
+     *
+     * @param int $userId 用户ID
+     * @return array
+     */
+    public static function getRoleIds(int $userId): array
+    {
+        return UserRole::where('user_id', $userId)->column('role_id');
+    }
+
+    /**
+     * 检查用户是否有指定角色
+     *
+     * @param int $userId 用户ID
+     * @param string $roleCode 角色代码
+     * @return bool
+     */
+    public static function hasRole(int $userId, string $roleCode): bool
+    {
+        $count = self::where('id', $userId)
+            ->roles()
+            ->where('code', $roleCode)
+            ->where('status', 1)
+            ->count();
+
+        return $count > 0;
+    }
+
+    /**
+     * 获取用户的所有权限代码
+     *
+     * @param int $userId 用户ID
+     * @return array
+     */
+    public static function getPermissionCodes(int $userId): array
+    {
+        $permissionCodes = UserRole::alias('ur')
+            ->join('role_permissions rp', 'ur.role_id = rp.role_id')
+            ->join('permissions p', 'rp.permission_id = p.id')
+            ->where('ur.user_id', $userId)
+            ->where('p.status', 1)
+            ->column('p.code');
+
+        return $permissionCodes ?: [];
+    }
+
+    /**
+     * 获取用户的所有菜单ID
+     *
+     * @param int $userId 用户ID
+     * @return array
+     */
+    public static function getMenuIds(int $userId): array
+    {
+        $menuIds = UserRole::alias('ur')
+            ->join('role_menus rm', 'ur.role_id = rm.role_id')
+            ->where('ur.user_id', $userId)
+            ->column('rm.menu_id');
+
+        return array_unique($menuIds ?: []);
     }
 }
