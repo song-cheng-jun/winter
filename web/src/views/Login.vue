@@ -19,27 +19,31 @@
           />
           <span v-if="errors.username" class="error-text">{{ errors.username }}</span>
         </div>
-
         <div class="form-item">
           <label for="password">密码</label>
-          <input
-            id="password"
-            v-model="loginForm.password"
-            type="password"
-            placeholder="请输入密码"
-            :disabled="loading"
-            @blur="validateField('password')"
-          />
+          <div class="password-input-wrapper">
+            <input
+              id="password"
+              v-model="loginForm.password"
+              :type="showPassword ? 'text' : 'password'"
+              placeholder="请输入密码"
+              :disabled="loading"
+              @blur="validateField('password')"
+            />
+            <div class="eye-icon" @click="togglePasswordVisibility">
+              <el-icon v-if="showPassword"><View/></el-icon>
+              <el-icon v-else><Hide /></el-icon>
+            </div>
+          </div>
           <span v-if="errors.password" class="error-text">{{ errors.password }}</span>
         </div>
-
         <button type="submit" class="login-button" :disabled="loading">
           {{ loading ? '登录中...' : '登录' }}
         </button>
       </form>
 
       <div class="login-footer">
-        <p>测试账号: admin / password</p>
+        <p>测试账号: admin / admin123</p>
       </div>
     </div>
   </div>
@@ -59,6 +63,16 @@ const userStore = useUserStore()
 
 // 加载状态
 const loading = ref(false)
+
+// 密码可见性
+const showPassword = ref(false)
+
+/**
+ * 切换密码可见性
+ */
+const togglePasswordVisibility = () => {
+  showPassword.value = !showPassword.value
+}
 
 // 表单数据
 const loginForm = reactive<LoginForm>({
@@ -218,6 +232,32 @@ const handleLogin = async () => {
 
     &::placeholder {
       color: #c0c4cc;
+    }
+  }
+
+  .password-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+
+    input {
+      padding-right: 40px;
+    }
+
+    .eye-icon {
+      position: absolute;
+      right: 12px;
+      cursor: pointer;
+      color: #909399;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+      transition: color 0.2s;
+
+      &:hover {
+        color: #409eff;
+      }
     }
   }
 
