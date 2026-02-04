@@ -107,4 +107,10 @@ export const StorageKeys = {
   TOKEN: 'library_token',
   /** 用户信息 */
   USER_INFO: 'library_user_info',
+  /** 用户角色列表 */
+  USER_ROLES: 'library_user_roles',
+  /** 用户菜单树 */
+  USER_MENUS: 'library_user_menus',
+  /** 用户权限代码列表 */
+  USER_PERMISSIONS: 'library_user_permissions',
 } as const

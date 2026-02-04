@@ -24,12 +24,59 @@ const routes: RouteRecordRaw[] = [
   },
   {
     path: '/',
-    name: 'Home',
-    component: () => import('@/views/Home.vue'),
+    component: () => import('@/layouts/AdminLayout.vue'),
+    redirect: '/home',
     meta: {
-      title: '首页',
       requiresAuth: true,
     },
+    children: [
+      {
+        path: '/home',
+        name: 'Home',
+        component: () => import('@/views/Home.vue'),
+        meta: {
+          title: '首页',
+          requiresAuth: true,
+        },
+      },
+      // 系统管理路由
+      {
+        path: '/system/user',
+        name: 'SystemUser',
+        component: () => import('@/views/system/user/index.vue'),
+        meta: {
+          title: '用户管理',
+          requiresAuth: true,
+        },
+      },
+      {
+        path: '/system/role',
+        name: 'SystemRole',
+        component: () => import('@/views/system/role/index.vue'),
+        meta: {
+          title: '角色管理',
+          requiresAuth: true,
+        },
+      },
+      {
+        path: '/system/menu',
+        name: 'SystemMenu',
+        component: () => import('@/views/system/menu/index.vue'),
+        meta: {
+          title: '菜单管理',
+          requiresAuth: true,
+        },
+      },
+      {
+        path: '/system/permission',
+        name: 'SystemPermission',
+        component: () => import('@/views/system/permission/index.vue'),
+        meta: {
+          title: '权限管理',
+          requiresAuth: true,
+        },
+      },
+    ],
   },
   {
     // 404 重定向

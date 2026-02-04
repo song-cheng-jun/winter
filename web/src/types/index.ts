@@ -59,3 +59,6 @@ export interface RouteMeta {
   requiresAuth?: boolean
   roles?: Array<'admin' | 'user'>
 }
+
+// 导出权限系统相关类型
+export * from './permission'

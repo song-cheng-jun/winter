@@ -15,4 +15,14 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
   },
+  server: {
+    proxy: {
+      // 代理 /api 请求到后端服务器
+      '/api': {
+        target: 'http://lib.com',
+        changeOrigin: true,
+        rewrite: (path) => path
+      }
+    }
+  }
 })

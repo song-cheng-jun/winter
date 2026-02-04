@@ -7,6 +7,9 @@
  * 状态包括：
  * - token: JWT 认证令牌
  * - userInfo: 用户信息
+ * - roles: 用户角色列表
+ * - menus: 用户菜单树
+ * - permissions: 用户权限代码列表
  * - isLoggedIn: 是否已登录（计算属性）
  * - isAdmin: 是否是管理员（计算属性）
  */
@@ -15,7 +18,7 @@ import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import { Storage, StorageKeys } from '@/utils/storage'
 import { authApi } from '@/api'
-import type { User, LoginForm } from '@/types'
+import type { User, LoginForm, Role, Menu } from '@/types'
 
 export const useUserStore = defineStore('user', () => {
   // ============================
@@ -27,6 +30,15 @@ export const useUserStore = defineStore('user', () => {
 
   // 用户信息（从本地存储读取初始值）
   const userInfo = ref<User | null>(Storage.getLocal<User>(StorageKeys.USER_INFO) || null)
+
+  // 用户角色列表
+  const roles = ref<Role[]>(Storage.getLocal<Role[]>(StorageKeys.USER_ROLES) || [])
+
+  // 用户菜单树
+  const menus = ref<Menu[]>(Storage.getLocal<Menu[]>(StorageKeys.USER_MENUS) || [])
+
+  // 用户权限代码列表
+  const permissions = ref<string[]>(Storage.getLocal<string[]>(StorageKeys.USER_PERMISSIONS) || [])
 
   // ============================
   // 计算属性
@@ -115,10 +127,16 @@ export const useUserStore = defineStore('user', () => {
       // 清空状态
       token.value = ''
       userInfo.value = null
+      roles.value = []
+      menus.value = []
+      permissions.value = []
 
       // 清空本地存储
       Storage.removeLocal(StorageKeys.TOKEN)
       Storage.removeLocal(StorageKeys.USER_INFO)
+      Storage.removeLocal(StorageKeys.USER_ROLES)
+      Storage.removeLocal(StorageKeys.USER_MENUS)
+      Storage.removeLocal(StorageKeys.USER_PERMISSIONS)
     }
   }
 
@@ -137,8 +155,95 @@ export const useUserStore = defineStore('user', () => {
   const clearUserInfo = () => {
     token.value = ''
     userInfo.value = null
+    roles.value = []
+    menus.value = []
+    permissions.value = []
     Storage.removeLocal(StorageKeys.TOKEN)
     Storage.removeLocal(StorageKeys.USER_INFO)
+    Storage.removeLocal(StorageKeys.USER_ROLES)
+    Storage.removeLocal(StorageKeys.USER_MENUS)
+    Storage.removeLocal(StorageKeys.USER_PERMISSIONS)
+  }
+
+  /**
+   * 获取用户完整信息（角色、菜单、权限）
+   */
+  const getUserCompleteInfoAction = async () => {
+    try {
+      const response = await authApi.getUserCompleteInfo()
+
+      if (response.success && response.data) {
+        const { user, roles: userRoles, menus: userMenus, permissions: userPermissions } =
+          response.data
+
+        // 更新用户信息
+        userInfo.value = { ...user, role: 'admin' } // 临时兼容旧的 role 字段
+        roles.value = userRoles
+        menus.value = userMenus
+        permissions.value = userPermissions
+
+        // 持久化到本地存储
+        Storage.setLocal(StorageKeys.USER_INFO, userInfo.value)
+        Storage.setLocal(StorageKeys.USER_ROLES, userRoles)
+        Storage.setLocal(StorageKeys.USER_MENUS, userMenus)
+        Storage.setLocal(StorageKeys.USER_PERMISSIONS, userPermissions)
+
+        return response.data
+      }
+
+      return null
+    } catch (error) {
+      console.error('获取用户完整信息失败:', error)
+      throw error
+    }
+  }
+
+  /**
+   * 获取用户菜单
+   */
+  const getUserMenusAction = async () => {
+    try {
+      const response = await authApi.getUserMenus()
+
+      if (response.success && response.data) {
+        menus.value = response.data
+        Storage.setLocal(StorageKeys.USER_MENUS, response.data)
+        return response.data
+      }
+
+      return null
+    } catch (error) {
+      console.error('获取用户菜单失败:', error)
+      throw error
+    }
+  }
+
+  /**
+   * 获取用户权限
+   */
+  const getUserPermissionsAction = async () => {
+    try {
+      const response = await authApi.getUserPermissions()
+
+      if (response.success && response.data) {
+        permissions.value = response.data
+        Storage.setLocal(StorageKeys.USER_PERMISSIONS, response.data)
+        return response.data
+      }
+
+      return null
+    } catch (error) {
+      console.error('获取用户权限失败:', error)
+      throw error
+    }
+  }
+
+  /**
+   * 检查用户是否有指定权限
+   * @param code 权限代码
+   */
+  const hasPermission = (code: string) => {
+    return permissions.value.includes(code)
   }
 
   // ============================
@@ -149,6 +254,9 @@ export const useUserStore = defineStore('user', () => {
     // 状态
     token,
     userInfo,
+    roles,
+    menus,
+    permissions,
 
     // 计算属性
     isLoggedIn,
@@ -158,8 +266,12 @@ export const useUserStore = defineStore('user', () => {
     // 方法
     loginAction,
     getUserInfoAction,
+    getUserCompleteInfoAction,
+    getUserMenusAction,
+    getUserPermissionsAction,
     logoutAction,
     updateToken,
     clearUserInfo,
+    hasPermission,
   }
 })

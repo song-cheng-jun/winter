@@ -1,11 +1,11 @@
 /**
  * 认证相关API
  *
- * 包含用户登录、获取用户信息、登出等接口
+ * 包含用户登录、获取用户信息、登出、菜单、权限等接口
  */
 
 import { request } from '@/utils/request'
-import type { LoginForm, LoginResponse, User } from '@/types'
+import type { LoginForm, LoginResponse, User, Menu, UserCompleteInfo } from '@/types'
 
 /**
  * 用户登录
@@ -22,6 +22,30 @@ export const login = (data: LoginForm) => {
  */
 export const getUserInfo = () => {
   return request.get<User>('/api/auth/userinfo')
+}
+
+/**
+ * 获取当前用户的菜单树
+ * @returns Promise<Menu[]> 菜单树形结构
+ */
+export const getUserMenus = () => {
+  return request.get<Menu[]>('/api/auth/menus')
+}
+
+/**
+ * 获取当前用户的权限列表
+ * @returns Promise<string[]> 权限代码数组
+ */
+export const getUserPermissions = () => {
+  return request.get<string[]>('/api/auth/permissions')
+}
+
+/**
+ * 获取当前用户完整信息（包含角色、菜单、权限）
+ * @returns Promise<UserCompleteInfo> 用户完整信息
+ */
+export const getUserCompleteInfo = () => {
+  return request.get<UserCompleteInfo>('/api/auth/info')
 }
 
 /**

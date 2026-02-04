@@ -1,215 +1,227 @@
 <template>
-  <div class="home-container">
-    <header class="home-header">
-      <div class="header-left">
-        <h1>图书管理系统</h1>
-      </div>
+  <div class="dashboard">
+    <el-row :gutter="20">
+      <el-col :span="6" v-for="stat in statistics" :key="stat.title">
+        <el-card shadow="hover" class="stat-card">
+          <div class="stat-content">
+            <div class="stat-icon" :style="{ backgroundColor: stat.color }">
+              <el-icon :size="32">
+                <component :is="stat.icon" />
+              </el-icon>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">{{ stat.value }}</div>
+              <div class="stat-title">{{ stat.title }}</div>
+            </div>
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
 
-      <div class="header-right">
-        <div class="user-info" @click="showUserMenu = !showUserMenu">
-          <div class="avatar">{{ userStore.nickname?.charAt(0).toUpperCase() }}</div>
-          <span class="username">{{ userStore.nickname }}</span>
-          <span class="arrow">{{ showUserMenu ? '▲' : '▼' }}</span>
-        </div>
+    <el-row :gutter="20" style="margin-top: 20px">
+      <el-col :span="12">
+        <el-card shadow="hover">
+          <template #header>
+            <div class="card-header">
+              <span>快捷操作</span>
+            </div>
+          </template>
+          <div class="quick-actions">
+            <el-button type="primary" @click="$router.push('/system/user')">
+              <el-icon><User /></el-icon>
+              用户管理
+            </el-button>
+            <el-button type="success" @click="$router.push('/system/role')">
+              <el-icon><UserFilled /></el-icon>
+              角色管理
+            </el-button>
+            <el-button type="warning" @click="$router.push('/system/menu')">
+              <el-icon><Menu /></el-icon>
+              菜单管理
+            </el-button>
+            <el-button type="info" @click="$router.push('/system/permission')">
+              <el-icon><Lock /></el-icon>
+              权限管理
+            </el-button>
+          </div>
+        </el-card>
+      </el-col>
 
-        <div v-if="showUserMenu" class="user-menu">
-          <div class="menu-item" @click="handleLogout">退出登录</div>
-        </div>
-      </div>
-    </header>
+      <el-col :span="12">
+        <el-card shadow="hover">
+          <template #header>
+            <div class="card-header">
+              <span>系统信息</span>
+            </div>
+          </template>
+          <div class="system-info">
+            <div class="info-item">
+              <span class="label">系统名称：</span>
+              <span class="value">图书管理系统</span>
+            </div>
+            <div class="info-item">
+              <span class="label">版本号：</span>
+              <span class="value">v1.0.0</span>
+            </div>
+            <div class="info-item">
+              <span class="label">登录用户：</span>
+              <span class="value">{{ userStore.nickname }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">用户角色：</span>
+              <span class="value">
+                <el-tag
+                  v-for="role in userStore.roles"
+                  :key="role.id"
+                  size="small"
+                  style="margin-right: 5px"
+                >
+                  {{ role.name }}
+                </el-tag>
+              </span>
+            </div>
+            <div class="info-item">
+              <span class="label">最后登录：</span>
+              <span class="value">{{ userStore.userInfo?.last_login_time || '-' }}</span>
+            </div>
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
 
-    <main class="home-main">
-      <div class="welcome-card">
-        <h2>欢迎回来</h2>
-        <div class="user-details">
-          <div class="detail-item">
-            <span class="label">用户名：</span>
-            <span class="value">{{ userStore.userInfo?.username }}</span>
+    <el-row :gutter="20" style="margin-top: 20px">
+      <el-col :span="24">
+        <el-card shadow="hover">
+          <template #header>
+            <div class="card-header">
+              <span>欢迎使用图书管理系统</span>
+            </div>
+          </template>
+          <div class="welcome-content">
+            <p>这是一个基于 RBAC 权限管理的图书管理系统，支持：</p>
+            <ul>
+              <li>用户管理 - 管理系统用户，分配角色</li>
+              <li>角色管理 - 创建角色，分配权限和菜单</li>
+              <li>菜单管理 - 管理系统菜单，支持无限级树形结构</li>
+              <li>权限管理 - 管理系统权限，精细化控制</li>
+            </ul>
           </div>
-          <div class="detail-item">
-            <span class="label">昵称：</span>
-            <span class="value">{{ userStore.userInfo?.nickname }}</span>
-          </div>
-          <div class="detail-item">
-            <span class="label">角色：</span>
-            <span class="value">{{ userStore.userInfo?.role === 'admin' ? '管理员' : '普通用户' }}</span>
-          </div>
-          <div v-if="userStore.userInfo?.last_login_time" class="detail-item">
-            <span class="label">最后登录时间：</span>
-            <span class="value">{{ userStore.userInfo.last_login_time }}</span>
-          </div>
-        </div>
-      </div>
-    </main>
+        </el-card>
+      </el-col>
+    </el-row>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
+import { User, UserFilled, Menu, Lock, Document, Reading, Setting } from '@element-plus/icons-vue'
 
-const router = useRouter()
 const userStore = useUserStore()
 
-// 显示用户菜单
-const showUserMenu = ref(false)
-
-/**
- * 退出登录
- */
-const handleLogout = async () => {
-  await userStore.logoutAction()
-  router.push('/login')
-}
-
-// 点击其他地方关闭菜单
-const closeMenu = () => {
-  showUserMenu.value = false
-}
-
-// 监听点击事件
-document.addEventListener('click', (e) => {
-  const target = e.target as HTMLElement
-  if (!target.closest('.header-right')) {
-    closeMenu()
-  }
-})
+// 统计数据
+const statistics = ref([
+  { title: '用户总数', value: '0', icon: User, color: '#409eff' },
+  { title: '角色总数', value: '0', icon: UserFilled, color: '#67c23a' },
+  { title: '菜单总数', value: '0', icon: Menu, color: '#e6a23c' },
+  { title: '权限总数', value: '0', icon: Lock, color: '#f56c6c' },
+])
 </script>
 
-<style lang="scss" scoped>
-.home-container {
-  min-height: 100vh;
-  background-color: #f5f7fa;
-}
-
-.home-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  height: 60px;
-  background-color: #ffffff;
-  border-bottom: 1px solid #ebeef5;
-  padding: 0 20px;
-
-  h1 {
-    font-size: 20px;
-    font-weight: 600;
-    margin: 0;
-    color: #303133;
-  }
-}
-
-.header-right {
-  position: relative;
-}
-
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
-  cursor: pointer;
-  border-radius: 4px;
-  transition: background-color 0.2s;
-
-  &:hover {
-    background-color: #f5f7fa;
-  }
-
-  .avatar {
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #409eff;
-    color: #ffffff;
-    border-radius: 50%;
-    font-size: 14px;
-    font-weight: 600;
-  }
-
-  .username {
-    font-size: 14px;
-    color: #606266;
-  }
-
-  .arrow {
-    font-size: 10px;
-    color: #909399;
-  }
-}
-
-.user-menu {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  margin-top: 5px;
-  background-color: #ffffff;
-  border: 1px solid #ebeef5;
-  border-radius: 4px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-  min-width: 120px;
-  z-index: 10;
-
-  .menu-item {
-    padding: 10px 15px;
-    font-size: 14px;
-    color: #606266;
-    cursor: pointer;
-    transition: background-color 0.2s;
-
-    &:hover {
-      background-color: #f5f7fa;
-    }
-
-    &:first-child {
-      border-radius: 4px 4px 0 0;
-    }
-
-    &:last-child {
-      border-radius: 0 0 4px 4px;
-    }
-  }
-}
-
-.home-main {
-  padding: 20px;
-}
-
-.welcome-card {
-  background-color: #ffffff;
-  border-radius: 8px;
-  padding: 30px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-
-  h2 {
-    font-size: 20px;
-    font-weight: 600;
-    color: #303133;
-    margin: 0 0 20px 0;
-  }
-
-  .user-details {
-    .detail-item {
+<style scoped lang="scss">
+.dashboard {
+  .stat-card {
+    .stat-content {
       display: flex;
-      padding: 10px 0;
-      border-bottom: 1px solid #ebeef5;
+      align-items: center;
+      gap: 20px;
+
+      .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+      }
+
+      .stat-info {
+        flex: 1;
+
+        .stat-value {
+          font-size: 28px;
+          font-weight: bold;
+          color: #303133;
+          line-height: 1;
+          margin-bottom: 8px;
+        }
+
+        .stat-title {
+          font-size: 14px;
+          color: #909399;
+        }
+      }
+    }
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+  }
+
+  .quick-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+
+    .el-button {
+      flex: 1;
+      min-width: 120px;
+    }
+  }
+
+  .system-info {
+    .info-item {
+      display: flex;
+      padding: 12px 0;
+      border-bottom: 1px solid #f0f0f0;
 
       &:last-child {
         border-bottom: none;
       }
 
       .label {
-        width: 120px;
-        font-size: 14px;
+        width: 100px;
         color: #909399;
+        font-size: 14px;
       }
 
       .value {
-        font-size: 14px;
+        flex: 1;
         color: #303133;
+        font-size: 14px;
+      }
+    }
+  }
+
+  .welcome-content {
+    line-height: 1.8;
+
+    p {
+      margin: 0 0 10px 0;
+      color: #606266;
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 20px;
+      color: #606266;
+
+      li {
+        margin: 5px 0;
       }
     }
   }

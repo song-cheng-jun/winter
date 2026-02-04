@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+vendor/
+web/node_modules/
+
+# Build artifacts
+dist/
+build/
+*.log
+
+# Cache
+.cache/
+temp/
+tmp/
+.runtime/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Lock files (auto-generated)
+package-lock.json
+composer.lock
+
+# Environment files (may contain secrets)
+.env
+.env.local
+.env.*.local

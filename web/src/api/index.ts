@@ -5,3 +5,7 @@
  */
 
 export * as authApi from './auth'
+export * as userApi from './users'
+export * as roleApi from './roles'
+export * as menuApi from './menus'
+export * as permissionApi from './permissions'

@@ -17,8 +17,8 @@ import type { ApiResponse, RequestConfig } from '@/types'
  * Axios实例配置
  */
 const config = {
-  // API基础URL，从环境变量读取，默认为本地开发地址
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://lib.com',
+  // API基础URL，开发环境使用代理（空字符串），生产环境从环境变量读取
+  baseURL: import.meta.env.VITE_API_BASE_URL || '',
   // 请求超时时间（毫秒）
   timeout: 15000,
 }

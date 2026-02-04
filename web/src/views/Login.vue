@@ -148,10 +148,17 @@ const handleLogin = async () => {
 
   try {
     // 调用登录接口
-    await userStore.loginAction(loginForm)
+    const success = await userStore.loginAction(loginForm)
 
-    // 登录成功，跳转到首页
-    router.push('/')
+    if (success) {
+      // 加载用户菜单
+      await userStore.getUserMenusAction()
+      // 加载用户权限
+      await userStore.getUserPermissionsAction()
+
+      // 登录成功，跳转到首页
+      router.push('/')
+    }
   } catch (error: any) {
     console.error('登录失败:', error)
     // 错误提示已在响应拦截器中处理
